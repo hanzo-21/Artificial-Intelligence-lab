@@ -10,4 +10,8 @@ public class Node extends LinkedList<Node> {
         this.name = name;
         visited = false;
     }
+
+    public String getName() {
+        return name;
+    }
 }
