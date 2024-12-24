@@ -12,7 +12,7 @@ public class Graph {
 
     public void insertEdge(Node source, Node target ){
         if (!adjacencyMap.keySet().contains(source)){
-            LinkedList<Node> tmp = new LinkedList<Node>();
+            LinkedList<Node> tmp = new LinkedList <Node>();
             tmp.add(target);
             adjacencyMap.put(source,target);
         }else {
@@ -28,9 +28,8 @@ public class Graph {
             if(adjacencyMap.get(n)!= null){
                 LinkedList<Node> cities = adjacencyMap.get(n);
                 for (Node c: cities){
-                    System.out.print(c.getName()+",");
+                    System.out.println(c.getName()+",");
                 }
-                System.out.println();
             }
         }
     }

@@ -7,7 +7,7 @@ public class Main {
 
         Graph graph = new   Graph(false);
         graph.insertEdge(n1,n2);
-        graph.insertEdge(n1,n3);
+        graph.insertEdge(n2,n3);
         graph.printEdge();
 
     }
