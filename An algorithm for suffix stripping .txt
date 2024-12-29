@@ -1,0 +1,204 @@
+﻿ABSTRACT
+
+
+The automatic removal of suffixes from words in English is of particular interest in the field of information retrieval. An algorithm for suffix stripping is described, which has been implemented as a short, fast program in BCPL. Although simple, it performs slightly better than a much more elaborate system with which it has been compared. It effectively works by treating complex suffixes as compounds made up of simple suffixes, and removing the simple suffixes in a number of steps. In each step the removal of the suffix is made to depend upon the form of the remaining stem, which usually involves a measure of its syllable length.
+
+
+1. INTRODUCTION
+
+
+Removing suffixes from words by automatic means is an operation which is especially useful in the field of information retrieval. In a typical IR environment, one has a collection of documents, each described by the words in the document title and possibly the words in the document abstract. Ignoring the issue of precisely where the words originate, we can say that a document is represented by a vector of words, or terms. Terms with a common stem will usually have similar meanings, for example:
+
+
+CONNECT
+
+
+CONNECTED
+
+
+CONNECTING
+
+
+CONNECTION
+
+
+CONNECTIONS
+
+
+Frequently, the performance of an IR system will be improved if term groups such as this are conflated into a single term. This may be done by removal of the various suffixes -ED, -ING, -ION, -IONS to leave the single stem CONNECT. In addition, the suffix stripping process will reduce the total number of terms in the IR system, and hence reduce the size and complexity of the data in the system, which is always advantageous.
+
+
+Many strategies for suffix stripping have been reported in the literature. (c.8. 1-6) The nature of the task will vary considerably depending on whether a stem dictionary is being used, whether a suffix list is being used, and of course on the purpose for which the suffix stripping is being done. Assuming that one is not making use of a stem dictionary, and that the purpose of the task is to improve IR performance, the suffix stripping program will usually be given an explicit list of suffixes, and, with each suffix, the criterion under which it may be removed from a word to leave a valid stem. This is the approach adopted here. The main merits of the present program are that it is small (less than 400 lines of BCPL), fast (it will process a vocabulary of 10,000 different words in about 8.1 seconds on the IBM 370/165 at Cambridge University), and reasonably simple. At any rate, it is simp simple enough to be described in full as an algorithm in this paper. (The present version in BCPL is freely available from the author. BCPL itself is available on a wide range of different computers, but anyone wishing to use the program should have little difficulty in coding it up in other programming languages.) Given the speed of the program, it would be quite realistic to apply it to every word in a large file of continuous text, although for historical reasons we have found it convenient to apply it only to relatively small vocabulary lists derived from continuous text files.
+
+
+In any suffix stripping program for IR work, two points must be borne in mind. Firstly, the suffixes are being removed simply to improve IR performance, and not as a linguistic exercise. This means that it would not be at all obvious under what circumstances a suffix should be removed, even if we could exactly determine the suffixes of the words by automatic means.
+
+
+Perhaps the best criterion for removing suffixes from two words W, and W₂ to produce a single stem S, is to say that we do so if there appears to 2 be no difference between the two statements 'a document is about W₁' and 'a document is about W₂'. So if W₁='CONNECTION' and W₂='CONNECTIONS' it seems very reasonable to conflate them to a single stem. But if W₁='RELATE' and W₂='RELATIVITY' it seems perhaps unreasonable, especially if the document collection is concerned with theoretical physics. (It should perhaps be added that RELATE and RELATIVITY are conflated together in the algorithm described here.) Between these two extremes there is a continuum of different cases, and given two terms W₁ and W₂, there will be some variation in opinion as to whether they should be conflated, just as there is with deciding the relevance of some document to a query. The evaluation of the worth of a suffix stripping system is correspondingly difficult.
+
+
+The second point is that with the approach adopted here, i.e. the use of a suffix list with various rules, the success rate for the suffix stripping will be significantly less than 100%, irrespective of how the process is evaluated. For example, if SAND and SANDER get conflated, so most probably will WAND and WANDER. The error here is that the ER of WANDER has been treated as a suffix when in fact it is part of the stem. Equally a suffix may completely alter the meaning of a word, in which case its removal is unhelpful. PROBE and PROBATE for example, have quite distinct meanings in modern English. (In fact these would not be conflated in our present algorithm.) There comes a stage in the development of a suffix stripping program where the addition of more rules to increase the performance in one area of the vocabulary causes an equal degradation of performance elsewhere. Unless this phenomenon is noticed in time, it is very easy for the program to become much more complex than is really necessary. It is also easy to give undue emphasis to cases which appear to be important, but which turn out in practice to be rather rare. For example, cases in which the spelling of the root of the word changes with the addition of a suffix, as in DECEIVE/DECEPTION, RESUME/ RESUMPTION, INDEX/INDICES, occur much more rarely in real vocabularies than one might at first suppose. In view of the error rate that must in any case be expected, it did not seem worthwhile to try and cope with these cases.
+
+
+It is not obvious that the simplicity of the present program is any demerit. In a test on the well known Cranfield 200 collection" it gave an improvement in retrieval performance when compared with a very much more elaborate program which has been in use in IR research at Cambridge since 1971(2.6). The test was done as follows: the words of the titles and abstracts in the documents were passed through the earlier suffix stripping system, and the resulting stems were used to index the documents. The words of the queries were reduced to stems in the same way, and the documents were ranked for each query using term coordination matching of query against document. From these rankings, recall and precision values were obtained using the standard recall cutoff method. The entire process was then repeated using the suffix stripping system described in this paper, and the results were as follows:
+
+
+Clearly the performance is not very different. The important point is that the earlier, more elaborate system certainly performs no better than the present, simple system.
+
+
+(This test was done by Prof. C.J. van Rijsbergen.)
+
+
+2. THE ALGORITHM
+
+
+To present the suffix stripping algorithm in its entirety we will need a few definitions.
+
+
+A consonant in a word is a letter other than A, E, I, O and U, and other than Y preceded by a consonant. (The fact that the term 'consonant' is defined to some extent in terms of itself does not make it ambiguous.) So in ΤΟΥ the consonants are T and Y, in SYZYGY they are S, Z and G. If a letter is not a consonant it is a vowel.
+A consonant will be denoted by c, a vowel by v. A list ccc... of length greater than 0 will be denoted by C, and a list vvv... of length greater than 0 will be denoted by V. Any word, or part of a word, therefore has one of the four forms:
+
+
+CVCV... C
+
+
+CVCV... V
+
+
+VCVC... C
+
+
+VCVC... V
+
+
+These may all be represented by the single form
+
+
+[C] VCVC... [V]
+
+
+where the square brackets denote arbitrary presence of their contents. Using (VC)m to denote VC repeated m times, this may again be written as
+
+
+[C] (VC)m [V].
+
+
+
+
+m will be called the measure of any word or word part when represented in this form. The case m = 0 covers the null word. Here are some examples:
+
+
+m = 0 TR, EE, TREE, Y, BY.
+
+
+m = 1 TROUBLE, OATS, TREES, IVY.
+
+
+m = 2 TROUBLES, PRIVATE, OATEN, ORRERY.
+
+
+The rules for removing a suffix will be given in the form
+
+
+2 of 4
+
+
+(condition) S1 → S2
+
+
+This means that if a word ends with the suffix S1, and the stem before S1 satisfies the given condition, S1 is replaced by S2. The condition is usually given in terms of m, e.g.
+
+
+(m > 1) EMENT
+
+
+Here S1 is 'EMENT' and S2 is null. This would map REPLACEMENT to REPLAC, since REPLAC is word part for which m = 2
+
+
+The 'condition' part may also contain the following:
+
+
+*S the stem ends with S (and similarly for the other letters).
+
+
+*v* the stem contains a vowel.
+
+
+*d the stem ends with a double consonant (e.g. -TT, -SS).
+
+
+*0 the stem ends cvc, where the second c is not W, X or Y (e.g. -WIL, -HOP).
+
+
+And the condition part may also contain expressions with and, or and not, so that
+
+
+( m > 1 and (*S or *T))
+
+
+tests for a stem with m > 1 ending in S or T, while
+
+
+(*d and not (*L or *S or *Z))
+
+
+tests for a stem ending with a double consonant other than L, S or Z. Elaborate conditions like this are required only very rarely.
+
+
+Step 1 deals with plurals and past participles. The subsequent steps are much more straightforward.
+
+
+The test for the string SI can be made fast by doing a program switch on the penultimate letter of the word being tested. This gives a fairly even breakdown of the possible values of the string S1. It will be seen in fact that the Sl-strings in step 2 are presented here in the alphabetical order of their penultimate letter. Similar techniques may be applied in the other steps.
+
+
+The algorithm is careful not to remove a suffix when the stem is too short, the length of the stem being given by its measure, m. There is no linguistic basis for this approach. It was merely observed that m could be used quite effectively to help decide whether or not it was wise to take off a suffix. For example, in the following two lists:
+list A
+
+
+RELATE
+ PROBATE 
+CONFLATE
+ PIRATE 
+PRELATE
+
+
+list B
+
+
+DERIVATE
+
+
+ACTIVATE
+
+
+DEMONSTRATE
+
+
+NECESSITATE
+
+
+RENOVATE
+
+
+-ATE is removed from the list B words, but not from the list A words. This means that the pairs DERIVATE/DERIVE, ACTIVATE/ ACTIVE, DEMONSTRATE/DEMONSTRABLE, NECESSITATE/ NECESSITOUS, will conflate together. The fact that no attempt is made to identify prefixes can make the results look rather inconsistent. Thus PRELATE does not lose the -ATE, but ARCHPRELATE becomes ARCHPREL. In practice this does not matter too much, because the presence of the prefix decreases the probability of an erroneous conflation.
+
+
+Complex suffixes are removed bit by bit in the different steps. Thus GENERALIZATIONS is stripped to GENERALIZATION (Step 1), then to GENERALIZE (Step 2), then to GENERAL (Step 3), and then to GENER (Step 4). OSCILLATORS is stripped to OSCILLATOR (Step 1), then to OSCILLATE (Step 2), then to OSCILL (Step 4), and then to OSCIL (Step 5). In a vocabulary of 10,000 words, the reduction in size of the stem was distributed among the steps as follows:
+
+
+Suffix stripping of a vocabulary of 10,000 words
+
+
+Number of words not reduced:
+
+
+3650
+
+
+The resulting vocabulary of stems contained 6370 distinct entries. Thus the suffix stripping process reduced the size of the vocabulary by about one third.
+
+
+ACKNOWLEDGEMENTS
+
+
+The author is grateful to the British Library R & D Department for the funds which supported this work.
