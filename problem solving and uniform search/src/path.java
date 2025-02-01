@@ -7,8 +7,6 @@ public class path {
     boolean destinationReached;
 
     path(){
-        path.clear();
-        visitedNode.clear();
         destinationReached =false;
     }
 
@@ -17,7 +15,7 @@ public class path {
     }
 
     public void pullPath(){
-        path.poll();
+        path.removeLast();
     }
 
     public LinkedList<Node> getPath(){

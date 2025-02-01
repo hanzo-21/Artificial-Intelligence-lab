@@ -3,13 +3,18 @@ public class Main {
 
         Node[] nodes = Node.defaultInitial();
 
-        Node.displayIdOfCity(nodes);
+        //Node.displayIdOfCity(nodes);
 
         Graph graph = new   Graph(false);
 
         graph = Graph.defaultGraphOfCity(nodes);
 
-        graph.printEdge();
+        //graph.printEdge();
+
+        Node source = Node.getNode("Arad",nodes);
+        Node destination = Node.getNode("Neamt",nodes);
+
+        graph.implementationOfDFS(source,destination);
 
     }
 }
