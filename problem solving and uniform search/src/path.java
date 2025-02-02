@@ -30,6 +30,10 @@ public class path {
         return visitedNode.contains(n);
     }
 
+    public LinkedList<Node> getVisitedNode(){
+        return visitedNode;
+    }
+
     public boolean isDestinationReached(){
         return destinationReached;
     }

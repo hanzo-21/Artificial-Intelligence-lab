@@ -14,7 +14,16 @@ public class Main {
         Node source = Node.getNode("Arad",nodes);
         Node destination = Node.getNode("Neamt",nodes);
 
+        System.out.println("\n\n here DFS start \n\n");
+
         graph.implementationOfDFS(source,destination);
+
+
+        System.out.println("\n\n here BFS start \n\n");
+
+        graph.implementationOBFS(source,destination);
+
+
 
     }
 }

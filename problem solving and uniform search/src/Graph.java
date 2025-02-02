@@ -65,32 +65,30 @@ public class Graph {
 
         DFS(source,destination );
 
-        System.out.println("the path it followed is ");
-
-        for (Node n : cityPath.getPath()){
+        System.out.println("city visited ");
+        for (Node n : cityPath.getVisitedNode()){
             System.out.println(n.getName());
         }
 
+        System.out.println("\n\nthe path it followed is ");
+        for (Node n : cityPath.getPath()){
+            System.out.println(n.getName());
+        }
     }
 
     public void DFS(Node source, Node destination){
         cityPath.pushPath(source);
         cityPath.setVisitedNode(source);
-
         //destination has just reached
         if (source == destination){
-
             cityPath.setDestinationReached();
             return;
         }
-
         //destination has not reached
-
         if(adjacencyMap.get(source) != null){
 
             LinkedList<Node> adjCities = adjacencyMap.get(source);
             for (Node city : adjCities){
-
                 if(!cityPath.isVisitedNode(city)){
 
                     DFS(city,destination);
@@ -103,6 +101,44 @@ public class Graph {
         }
     }
 
+    public void implementationOBFS(Node source, Node destination){
+        this.cityPath = new path();
 
+        BFS(source,destination);
+
+        System.out.println("city visited ");
+        for (Node n : cityPath.getVisitedNode()){
+            System.out.println(n.getName());
+        }
+
+
+    }
+
+    public void BFS(Node source,Node destination){
+
+        //destination has not reached
+        cityPath.pushPath(source);
+        cityPath.setVisitedNode(source);
+        LinkedList<Node> queue = new LinkedList<>(adjacencyMap.get(source));
+
+        while (!queue.isEmpty()){
+            //destination reached
+            if(source == destination){
+                return;
+            }
+            source = queue.removeFirst();
+
+
+            if(!cityPath.isVisitedNode(source)){
+                cityPath.pushPath(source);
+                cityPath.setVisitedNode(source);
+                for (Node n : adjacencyMap.get(source)){
+                    if((!cityPath.isVisitedNode(n)) && (!queue.contains(n))){
+                        queue.add(n);
+                    }
+                }
+            }
+        }
+    }
 
 }
